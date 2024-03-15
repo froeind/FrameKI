@@ -7,6 +7,8 @@ bigdata.opendb()
 
 import tkinter as tk
 #from tkinter import ttk
+# nur um zu testen, dass das jetzt richtig hochgeschoben wird
+i = 5
 
 # laut Bard=Gemini soll das das "Kein-Button-gedrückt"-Problem lösen - JA
 def on_closing():
