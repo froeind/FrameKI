@@ -69,6 +69,8 @@ class confanddata:
             tableavailable = False
             return len(keyandvalues)
 
+        # so jetzt konsequent "prepared statements"
+
         if tableavailable:
             notset = 0
             for row in keyandvalues:
@@ -79,12 +81,16 @@ class confanddata:
                         # executemany erst mal gestrichen, weil bei Nicht-Eindeutigkeit crasht das Ganze
                         self.con.commit()
                     except:
-                        if table == "configuration": setvalues = f"ivalue={row[1]}, rvalue={row[2]}, tvalue='{row[3]}'"
-                        elif table == "dataki1": setvalues = f"rvalue1={row[1]}, rvalue2={row[2]}, rvalue3={row[3]}, rvalue4={row[4]}, rvalue5={row[5]}, rvalue6={row[6]}, bvalue1={row[7]}, bvalue2={row[8]}"
+                        if table == "configuration":
+                            esql = f"UPDATE {table} SET ivalue = ?, rvalue = ?, tvalue = ? WHERE key = ?"
+                            erow = (row[1], row[2], row[3], row[0])
+                        elif table == "dataki1":
+                            esql = f"UPDATE {table} SET rvalue1 = ?, rvalue2 = ?, rvalue3 = ?, rvalue4 = ?, rvalue5 = ?, rvalue6 = ?, rvalue7 = ?, rvalue8 = ? WHERE key = ?"
+                            erow = (row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[0])
                         else: break
                         try:
-                            #print(f"UPDATE {table} SET {setvalues} WHERE key='{row[0]}'")
-                            self.con.execute(f"UPDATE {table} SET {setvalues} WHERE key='{row[0]}'")
+                            #print(f"UPDATE {table} SET {setvalues} WHERE key='{row[0]}'") <- früher
+                            self.con.execute(esql, erow)
                             self.con.commit()
                         except: notset += 1
                 else:
@@ -92,10 +98,18 @@ class confanddata:
                         self.con.execute(f"INSERT INTO {table}(key,{field}) VALUES(?, ?)", row)
                         self.con.commit()
                     except:
+                        ''' old
                         if field[:6] == "tvalue": textmarker = "'"
                         else: textmarker = ""
                         try:
                             self.con.execute(f"UPDATE {table} SET {field}={textmarker}{row[1]}{textmarker} WHERE key='{row[0]}'")
+                            self.con.commit()
+                        except: notset += 1
+                        '''
+                        try:
+                            esql = f"UPDATE {table} SET {field} = ? WHERE key = ?"
+                            erow = (row[1], row[0])
+                            self.con.execute(esql, erow)
                             self.con.commit()
                         except: notset += 1
             return notset
